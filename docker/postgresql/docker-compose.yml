@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: claude_code_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: claude_code_flutter
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+volumes:
+  db_data:

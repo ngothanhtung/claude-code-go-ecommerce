@@ -1,0 +1,137 @@
+@baseUrl = http://localhost:8080
+@accessToken = {{login.response.body.data.access_token}}
+@refreshToken = {{login.response.body.data.refresh_token}}
+
+### ---------------------------------------------------------------------------
+### Health (no auth)
+### ---------------------------------------------------------------------------
+
+### Liveness probe
+# @name health
+GET {{baseUrl}}/healthz
+
+### Readiness probe (DB + Redis)
+# @name ready
+GET {{baseUrl}}/readyz
+
+### ---------------------------------------------------------------------------
+### Auth
+### ---------------------------------------------------------------------------
+
+### Register a new user
+# @name register
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "dev@example.com",
+  "name": "Dev User",
+  "password": "Password123"
+}
+
+### Login -> saves access + refresh tokens for later requests
+# @name login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@go-tutorials.local",
+  "password": "Admin@123456"
+}
+
+### Refresh token pair (rotation)
+# @name refresh
+POST {{baseUrl}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refreshToken}}"
+}
+
+### Logout (revoke refresh token)
+# @name logout
+POST {{baseUrl}}/api/v1/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "refresh_token": "{{refreshToken}}"
+}
+
+### Forgot password (dev: returns dev_token in response)
+# @name forgot
+POST {{baseUrl}}/api/v1/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "dev@example.com"
+}
+
+### Reset password (token format from forgot is "id:raw")
+# @name reset
+POST {{baseUrl}}/api/v1/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "<id>:<raw>",
+  "new_password": "NewPassword123"
+}
+
+### ---------------------------------------------------------------------------
+### Users (requires bearer token)
+### ---------------------------------------------------------------------------
+
+### Current user
+# @name me
+GET {{baseUrl}}/api/v1/users/me
+Authorization: Bearer {{accessToken}}
+
+### List users (paged)
+# @name users-list
+GET {{baseUrl}}/api/v1/users?page=1&page_size=20&sort=-created_at
+Authorization: Bearer {{accessToken}}
+
+### Get user by id
+# @name user-get
+GET {{baseUrl}}/api/v1/users/{{register.response.body.data.user.id}}
+Authorization: Bearer {{accessToken}}
+
+### Update user
+# @name user-update
+PUT {{baseUrl}}/api/v1/users/{{register.response.body.data.user.id}}
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "name": "Dev User Updated"
+}
+
+### Delete user
+# @name user-delete
+DELETE {{baseUrl}}/api/v1/users/{{register.response.body.data.user.id}}
+Authorization: Bearer {{accessToken}}
+
+### ---------------------------------------------------------------------------
+### Uploads (requires bearer token)
+### ---------------------------------------------------------------------------
+
+### Upload a file (multipart, field "file")
+### Pick any local image/pdf; type must be image/jpeg|png|webp or application/pdf
+# @name upload
+POST {{baseUrl}}/api/v1/uploads
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="sample.png"
+Content-Type: image/png
+
+< ./sample.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### ---------------------------------------------------------------------------
+### Swagger UI (open in browser)
+### ---------------------------------------------------------------------------
+
+### Swagger docs
+GET {{baseUrl}}/swagger/index.html

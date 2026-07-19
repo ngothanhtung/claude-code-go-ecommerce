@@ -1,0 +1,4 @@
+configs/.env
+uploads/
+# keep docker/ compose files tracked; only ignore data volumes if any
+# docker/
