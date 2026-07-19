@@ -12,9 +12,13 @@ import (
 	"github.com/ngothanhtung/go-tutorials/internal/common/storage"
 	"github.com/ngothanhtung/go-tutorials/internal/db"
 	"github.com/ngothanhtung/go-tutorials/internal/features/auth"
+	"github.com/ngothanhtung/go-tutorials/internal/features/cart"
 	"github.com/ngothanhtung/go-tutorials/internal/features/health"
+	"github.com/ngothanhtung/go-tutorials/internal/features/orders"
+	"github.com/ngothanhtung/go-tutorials/internal/features/rbac"
 	"github.com/ngothanhtung/go-tutorials/internal/features/uploads"
 	"github.com/ngothanhtung/go-tutorials/internal/features/user"
+	"github.com/ngothanhtung/go-tutorials/internal/features/wishlist"
 )
 
 func (a *App) buildRouter() *gin.Engine {
@@ -27,6 +31,7 @@ func (a *App) buildRouter() *gin.Engine {
 	r.Use(middleware.Audit(a.Log, a.DB, a.Cfg.Audit.Enabled))
 
 	authM := middleware.Auth(a.JWT)
+	adminM := rbac.AdminGuard()
 	r.Static("/static", a.Cfg.Upload.Dir)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -57,6 +62,19 @@ func (a *App) buildRouter() *gin.Engine {
 	user.Register(v1, user.NewHandler(userSvc), authM)
 
 	uploads.Register(v1, uploads.NewHandler(store), authM)
+
+	// Storefront (auth-protected): cart, wishlist, orders.
+	cartRepo := cart.NewRepository(a.DB)
+	cartSvc := cart.NewService(cartRepo)
+	cart.Register(v1, cart.NewHandler(cartSvc), authM)
+
+	wishlistRepo := wishlist.NewRepository(a.DB)
+	wishlistSvc := wishlist.NewService(wishlistRepo)
+	wishlist.Register(v1, wishlist.NewHandler(wishlistSvc), authM)
+
+	ordersRepo := orders.NewRepository(a.DB)
+	ordersSvc := orders.NewService(ordersRepo)
+	orders.Register(v1, orders.NewHandler(ordersSvc), authM, adminM)
 
 	return r
 }
