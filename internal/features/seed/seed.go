@@ -50,5 +50,9 @@ func Run(ctx context.Context, db *gorm.DB, adminEmail, adminPassword string) err
 		return err
 	}
 	log.Println("seed: admin user created:", adminEmail)
+
+	if err := SeedCatalog(ctx, db); err != nil {
+		return err
+	}
 	return nil
 }
