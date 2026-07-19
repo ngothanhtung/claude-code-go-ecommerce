@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS product_reviews;
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS store_orders;
+DROP TABLE IF EXISTS wishlists;
+DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS promos;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS categories;
+ALTER TABLE users DROP COLUMN IF EXISTS photo_url;

@@ -17,6 +17,7 @@ type Repository interface {
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 	Update(ctx context.Context, u *User) error
+	UpdateMe(ctx context.Context, u *User) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context, q paging.Query) ([]User, int64, error)
 }
@@ -65,6 +66,16 @@ func (r *repo) Update(ctx context.Context, u *User) error {
 	if err := r.db.WithContext(ctx).Model(u).Updates(map[string]interface{}{
 		"name":  u.Name,
 		"email": u.Email,
+	}).Error; err != nil {
+		return apperr.NewInternal("update user", err)
+	}
+	return nil
+}
+
+func (r *repo) UpdateMe(ctx context.Context, u *User) error {
+	if err := r.db.WithContext(ctx).Model(u).Updates(map[string]interface{}{
+		"name":      u.Name,
+		"photo_url": u.PhotoURL,
 	}).Error; err != nil {
 		return apperr.NewInternal("update user", err)
 	}

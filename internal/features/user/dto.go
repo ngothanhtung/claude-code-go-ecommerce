@@ -14,6 +14,11 @@ type UpdateRequest struct {
 	Email string `json:"email" validate:"omitempty,email"`
 }
 
+type UpdateMeRequest struct {
+	Name     string `json:"name" validate:"omitempty,min=2,max=100"`
+	PhotoURL string `json:"photo_url"`
+}
+
 type ListResponse struct {
 	Items    []PublicUser `json:"items"`
 	Total    int64        `json:"total"`

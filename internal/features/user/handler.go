@@ -113,3 +113,27 @@ func (h *Handler) Me(c *gin.Context) {
 	}
 	response.OK(c, pu)
 }
+
+func (h *Handler) MeUpdate(c *gin.Context) {
+	cl := middleware.Claims(c)
+	if cl == nil {
+		response.Error(c, apperr.NewUnauthorized("unauthenticated"))
+		return
+	}
+	id, err := uuid.Parse(cl.UserID)
+	if err != nil {
+		response.Error(c, apperr.NewValidation("invalid id"))
+		return
+	}
+	var req UpdateMeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, val.WrapBind(err))
+		return
+	}
+	pu, err := h.svc.UpdateMe(c.Request.Context(), id, req)
+	if err != nil {
+		response.Error(c, err)
+		return
+	}
+	response.OK(c, pu)
+}

@@ -15,6 +15,7 @@ type Service interface {
 	GetByID(ctx context.Context, id uuid.UUID) (PublicUser, error)
 	GetByEmail(ctx context.Context, email string) (PublicUser, error)
 	Update(ctx context.Context, id uuid.UUID, req UpdateRequest) (PublicUser, error)
+	UpdateMe(ctx context.Context, id uuid.UUID, req UpdateMeRequest) (PublicUser, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context, q paging.Query) (ListResponse, error)
 }
@@ -81,6 +82,23 @@ func (s *service) Update(ctx context.Context, id uuid.UUID, req UpdateRequest) (
 
 func (s *service) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, id)
+}
+
+func (s *service) UpdateMe(ctx context.Context, id uuid.UUID, req UpdateMeRequest) (PublicUser, error) {
+	u, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return PublicUser{}, err
+	}
+	if req.Name != "" {
+		u.Name = req.Name
+	}
+	if req.PhotoURL != "" {
+		u.PhotoURL = &req.PhotoURL
+	}
+	if err := s.repo.UpdateMe(ctx, u); err != nil {
+		return PublicUser{}, err
+	}
+	return u.ToPublic(), nil
 }
 
 func (s *service) List(ctx context.Context, q paging.Query) (ListResponse, error) {
