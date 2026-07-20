@@ -24,6 +24,11 @@ func Run(ctx context.Context, db *gorm.DB, adminEmail, adminPassword string) err
 		return err
 	}
 
+	// Seed catalog data unconditionally (idempotent FirstOrCreate).
+	if err := SeedCatalog(ctx, db); err != nil {
+		return err
+	}
+
 	var count int64
 	if err := db.WithContext(ctx).Model(&usermodel.User{}).Where("email = ?", adminEmail).Count(&count).Error; err != nil {
 		return err
@@ -50,9 +55,5 @@ func Run(ctx context.Context, db *gorm.DB, adminEmail, adminPassword string) err
 		return err
 	}
 	log.Println("seed: admin user created:", adminEmail)
-
-	if err := SeedCatalog(ctx, db); err != nil {
-		return err
-	}
 	return nil
 }

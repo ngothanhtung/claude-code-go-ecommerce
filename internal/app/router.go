@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
@@ -13,9 +14,12 @@ import (
 	"github.com/ngothanhtung/go-tutorials/internal/db"
 	"github.com/ngothanhtung/go-tutorials/internal/features/auth"
 	"github.com/ngothanhtung/go-tutorials/internal/features/cart"
+	"github.com/ngothanhtung/go-tutorials/internal/features/catalog"
 	"github.com/ngothanhtung/go-tutorials/internal/features/health"
+	"github.com/ngothanhtung/go-tutorials/internal/features/notifications"
 	"github.com/ngothanhtung/go-tutorials/internal/features/orders"
 	"github.com/ngothanhtung/go-tutorials/internal/features/rbac"
+	"github.com/ngothanhtung/go-tutorials/internal/features/reviews"
 	"github.com/ngothanhtung/go-tutorials/internal/features/uploads"
 	"github.com/ngothanhtung/go-tutorials/internal/features/user"
 	"github.com/ngothanhtung/go-tutorials/internal/features/wishlist"
@@ -74,7 +78,37 @@ func (a *App) buildRouter() *gin.Engine {
 
 	ordersRepo := orders.NewRepository(a.DB)
 	ordersSvc := orders.NewService(ordersRepo)
-	orders.Register(v1, orders.NewHandler(ordersSvc), authM, adminM)
+	ordersHandler := orders.NewHandler(ordersSvc)
+	orders.Register(v1, ordersHandler, authM, adminM)
+
+	// Catalog (public reads, no auth).
+	catalogRepo := catalog.NewRepository(a.DB)
+	catalogSvc := catalog.NewService(catalogRepo)
+	catalog.Register(v1, catalog.NewHandler(catalogSvc))
+
+	// Notifications (auth-protected).
+	notificationsRepo := notifications.NewRepository(a.DB)
+	notificationsSvc := notifications.NewService(notificationsRepo)
+	notifications.Register(v1, notifications.NewHandler(notificationsSvc), authM)
+
+	// Reviews (public list, auth for own). User-name lookup uses user repo.
+	userRepoForLookup := user.NewRepository(a.DB)
+	reviewsRepo := reviews.NewRepository(a.DB)
+	reviewsSvc := reviews.NewService(reviewsRepo)
+	reviewsHandler := reviews.NewHandler(reviewsSvc)
+	reviewsHandler.LookUpUserName = func(ctx context.Context, userID uuid.UUID) string {
+		u, err := userRepoForLookup.GetByID(ctx, userID)
+		if err != nil || u == nil {
+			return ""
+		}
+		return u.Name
+	}
+	reviews.RegisterProductReviews(v1, reviewsHandler, authM)
+
+	// Auto-notify when an order is placed (avoid orders -> notifications import cycle).
+	ordersHandler.OnOrderCreated = func(userID uuid.UUID, orderID string, total float64) {
+		_ = notificationsSvc.CreateOrderNotification(context.Background(), userID, orderID, total)
+	}
 
 	return r
 }

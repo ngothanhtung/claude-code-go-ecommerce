@@ -1,6 +1,8 @@
 package reviews
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
@@ -12,9 +14,15 @@ import (
 
 type Handler struct {
 	svc Service
+	// LookUpUserName resolves a user ID to their display name.
+	// Set by router.go to avoid circular imports.
+	// Falls back to "Member" if unset or lookup fails.
+	LookUpUserName func(ctx context.Context, userID uuid.UUID) string
 }
 
-func NewHandler(svc Service) *Handler { return &Handler{svc: svc} }
+func NewHandler(svc Service) *Handler {
+	return &Handler{svc: svc}
+}
 
 func userIDFrom(c *gin.Context) (uuid.UUID, *apperr.AppError) {
 	cl := middleware.Claims(c)
@@ -86,9 +94,14 @@ func (h *Handler) UpsertMe(c *gin.Context) {
 	}
 
 	cl := middleware.Claims(c)
-	userName, userEmail := "", ""
+	userName, userEmail := "Member", ""
 	if cl != nil {
 		userEmail = cl.Email
+	}
+	if h.LookUpUserName != nil {
+		if resolved := h.LookUpUserName(c.Request.Context(), uid); resolved != "" {
+			userName = resolved
+		}
 	}
 
 	// Determine whether this is a create or an update to return the right status.
