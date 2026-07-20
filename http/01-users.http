@@ -1,0 +1,66 @@
+@baseUrl = http://localhost:8080
+@accessToken = {{loginUsers.response.body.data.access_token}}
+@createdUserId = {{createUser.response.body.data.id}}
+
+### Login first
+# @name loginUsers
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@go-tutorials.local",
+  "password": "Admin@123456"
+}
+
+### Current profile
+# @name currentUser
+GET {{baseUrl}}/api/v1/users/me
+Authorization: Bearer {{accessToken}}
+
+### Update current profile
+# @name updateCurrentUser
+PUT {{baseUrl}}/api/v1/users/me
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Administrator",
+  "photo_url": "https://picsum.photos/seed/go-admin/256"
+}
+
+### Create a user
+# @name createUser
+POST {{baseUrl}}/api/v1/users
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "email": "manual.users.{{$timestamp}}@example.com",
+  "name": "Manual Users Test",
+  "password": "Password123"
+}
+
+### List users with paging and sorting
+# @name listUsers
+GET {{baseUrl}}/api/v1/users?page=1&page_size=20&sort=-created_at
+Authorization: Bearer {{accessToken}}
+
+### Get the newly created user
+# @name getUser
+GET {{baseUrl}}/api/v1/users/{{createdUserId}}
+Authorization: Bearer {{accessToken}}
+
+### Update the newly created user
+# @name updateUser
+PUT {{baseUrl}}/api/v1/users/{{createdUserId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Manual Users Test Updated"
+}
+
+### Delete the newly created user (run last)
+# @name deleteUser
+DELETE {{baseUrl}}/api/v1/users/{{createdUserId}}
+Authorization: Bearer {{accessToken}}

@@ -1,0 +1,74 @@
+@baseUrl = http://localhost:8080
+@accessToken = {{loginOrders.response.body.data.access_token}}
+@orderId = {{createOrder.response.body.data.id}}
+@productId = p1
+
+### Login first
+# @name loginOrders
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@go-tutorials.local",
+  "password": "Admin@123456"
+}
+
+### Create an order (server calculates names, prices, and total)
+# @name createOrder
+POST {{baseUrl}}/api/v1/orders
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "items": [
+    {"product_id": "{{productId}}", "quantity": 2},
+    {"product_id": "p9", "quantity": 1}
+  ],
+  "shipping_address": "Manual Tester · 0900000000\n1 Nguyen Hue, District 1, HCMC",
+  "payment_method": "cod"
+}
+
+### List my orders
+# @name listOrders
+GET {{baseUrl}}/api/v1/orders
+Authorization: Bearer {{accessToken}}
+
+### Get the newly created order
+# @name getOrder
+GET {{baseUrl}}/api/v1/orders/{{orderId}}
+Authorization: Bearer {{accessToken}}
+
+### Update status — requires an access token containing the admin role
+# @name updateOrderStatus
+PATCH {{baseUrl}}/api/v1/orders/{{orderId}}/status
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "shipped"
+}
+
+### Public reviews for the product
+# @name listReviews
+GET {{baseUrl}}/api/v1/products/{{productId}}/reviews
+
+### My review (data is null before the first upsert)
+# @name getMyReview
+GET {{baseUrl}}/api/v1/products/{{productId}}/reviews/me
+Authorization: Bearer {{accessToken}}
+
+### Create or update my review
+# @name upsertMyReview
+PUT {{baseUrl}}/api/v1/products/{{productId}}/reviews/me
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "comment": "Manual API test: product and checkout flow work correctly."
+}
+
+### Verify my review
+# @name verifyMyReview
+GET {{baseUrl}}/api/v1/products/{{productId}}/reviews/me
+Authorization: Bearer {{accessToken}}

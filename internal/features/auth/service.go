@@ -133,7 +133,7 @@ func (s *service) ForgotPassword(ctx context.Context, req ForgotRequest) (string
 	if err := s.repo.SaveReset(ctx, rec); err != nil {
 		return "", apperr.NewInternal("save reset", err)
 	}
-	return raw, nil
+	return rec.ID + ":" + raw, nil
 }
 
 func (s *service) ResetPassword(ctx context.Context, req ResetRequest) error {
@@ -173,6 +173,15 @@ func (s *service) ResetPassword(ctx context.Context, req ResetRequest) error {
 
 func (s *service) issueTokens(ctx context.Context, u *usermodel.User) (TokenPair, error) {
 	roles := []string{"user"}
+	if u.RoleID != nil {
+		role, err := s.repo.GetRoleName(ctx, *u.RoleID)
+		if err != nil {
+			return TokenPair{}, err
+		}
+		if role != "" {
+			roles = []string{role}
+		}
+	}
 	refreshID := uuid.NewString()
 	refreshClaims := jwt.Claims{
 		UserID: u.ID.String(),

@@ -118,7 +118,9 @@ func (r *repo) Create(ctx context.Context, userID uuid.UUID, req CreateRequest) 
 			PaymentMethod:   req.PaymentMethod,
 			Items:           snapshots,
 		}
-		if err := tx.Create(o).Error; err != nil {
+		// Items are inserted explicitly below after the generated order ID is
+		// available; omit the association here to avoid inserting them twice.
+		if err := tx.Omit("Items").Create(o).Error; err != nil {
 			return apperr.NewInternal("create order", err)
 		}
 

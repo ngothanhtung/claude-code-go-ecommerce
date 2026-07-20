@@ -154,6 +154,20 @@ open http://localhost:8080/swagger/index.html
 | `make swagger`      | Regenerate `api/openapi.yaml` from comments |
 | `go test ./...`     | Run unit tests (currently under `pkg/jwt`)  |
 
+## Manual API tests
+
+Open the numbered request files in `http/` with the VS Code REST Client or an
+IntelliJ-based HTTP Client. Run the login request at the top of each protected
+domain file first; response variables automatically feed tokens and created IDs
+into the following requests.
+
+- `00-health-auth.http` — health, register, JWT refresh, reset, logout
+- `01-users.http` — profile and user CRUD
+- `02-catalog.http` — categories, products, search, related items, promos
+- `03-cart-wishlist.http` — cart and wishlist lifecycle
+- `04-orders-reviews.http` — checkout, status updates, reviews
+- `05-notifications-uploads.http` — notification state and multipart upload
+
 ## Stopping & cleanup
 
 ```bash

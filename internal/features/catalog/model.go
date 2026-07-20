@@ -1,8 +1,9 @@
 package catalog
 
 import (
-	"strings"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 type Category struct {
@@ -16,19 +17,19 @@ type Category struct {
 func (Category) TableName() string { return "categories" }
 
 type Product struct {
-	ID           string    `gorm:"primaryKey;size:100" json:"id"`
-	Name         string    `gorm:"size:255" json:"name"`
-	Price        float64   `gorm:"type:decimal(10,2)" json:"price"`
-	Rating       float64   `gorm:"type:decimal(3,2);default:0" json:"rating"`
-	ReviewsCount int       `gorm:"column:reviews_count;default:0" json:"reviews_count"`
-	IconName     string    `gorm:"size:100" json:"icon_name"`
-	ColorHex     string    `gorm:"size:9" json:"color_hex"`
-	CategoryID   string    `gorm:"size:50" json:"category_id"`
-	Description  string    `gorm:"type:text" json:"description"`
-	ImageURLs    []string  `gorm:"type:text[]" json:"image_urls"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	DeletedAt    *time.Time `gorm:"index" json:"-"`
+	ID           string         `gorm:"primaryKey;size:100" json:"id"`
+	Name         string         `gorm:"size:255" json:"name"`
+	Price        float64        `gorm:"type:decimal(10,2)" json:"price"`
+	Rating       float64        `gorm:"type:decimal(3,2);default:0" json:"rating"`
+	ReviewsCount int            `gorm:"column:reviews_count;default:0" json:"reviews_count"`
+	IconName     string         `gorm:"size:100" json:"icon_name"`
+	ColorHex     string         `gorm:"size:9" json:"color_hex"`
+	CategoryID   string         `gorm:"size:50" json:"category_id"`
+	Description  string         `gorm:"type:text" json:"description"`
+	ImageURLs    pq.StringArray `gorm:"type:text[]" json:"image_urls"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    *time.Time     `gorm:"index" json:"-"`
 }
 
 func (Product) TableName() string { return "products" }
@@ -48,7 +49,7 @@ type ProductPublic struct {
 }
 
 func (p Product) ToPublic() ProductPublic {
-	urls := p.ImageURLs
+	urls := []string(p.ImageURLs)
 	if urls == nil {
 		urls = []string{}
 	}
@@ -70,5 +71,3 @@ type Promo struct {
 }
 
 func (Promo) TableName() string { return "promos" }
-
-var _ = strings.Split // suppress unused import

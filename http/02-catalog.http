@@ -1,0 +1,35 @@
+@baseUrl = http://localhost:8080
+@productId = p1
+@categoryId = fashion
+
+### Categories
+# @name listCategories
+GET {{baseUrl}}/api/v1/catalog/categories
+
+### Products — first page
+# @name listProducts
+GET {{baseUrl}}/api/v1/catalog/products?page=1&page_size=20&sort=name
+
+### Products filtered by category
+# @name productsByCategory
+GET {{baseUrl}}/api/v1/catalog/products?category_id={{categoryId}}&page=1&page_size=20
+
+### Search products
+# @name searchProducts
+GET {{baseUrl}}/api/v1/catalog/products?q=linen&page=1&page_size=20
+
+### Product detail
+# @name getProduct
+GET {{baseUrl}}/api/v1/catalog/products/{{productId}}
+
+### Related products
+# @name relatedProducts
+GET {{baseUrl}}/api/v1/catalog/products/{{productId}}/related?limit=4
+
+### Promotions
+# @name listPromos
+GET {{baseUrl}}/api/v1/catalog/promos
+
+### Not found example — expected HTTP 404
+# @name missingProduct
+GET {{baseUrl}}/api/v1/catalog/products/not-a-real-product

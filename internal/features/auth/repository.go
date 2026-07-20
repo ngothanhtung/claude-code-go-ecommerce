@@ -15,6 +15,7 @@ type Repository interface {
 	CreateUser(ctx context.Context, u *usermodel.User) error
 	GetUserByEmail(ctx context.Context, email string) (*usermodel.User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (*usermodel.User, error)
+	GetRoleName(ctx context.Context, id uuid.UUID) (string, error)
 	UpdateUser(ctx context.Context, u *usermodel.User) error
 	SaveRefresh(ctx context.Context, r RefreshTokenRecord) error
 	GetRefresh(ctx context.Context, id string) (*RefreshTokenRecord, error)
@@ -63,6 +64,18 @@ func (r *repo) GetUserByID(ctx context.Context, id uuid.UUID) (*usermodel.User, 
 		return nil, apperr.NewInternal("get user", err)
 	}
 	return &u, nil
+}
+
+func (r *repo) GetRoleName(ctx context.Context, id uuid.UUID) (string, error) {
+	var name string
+	if err := r.db.WithContext(ctx).
+		Table("roles").
+		Select("name").
+		Where("id = ?", id).
+		Scan(&name).Error; err != nil {
+		return "", apperr.NewInternal("get user role", err)
+	}
+	return name, nil
 }
 
 func (r *repo) UpdateUser(ctx context.Context, u *usermodel.User) error {

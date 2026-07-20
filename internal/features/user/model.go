@@ -22,11 +22,11 @@ func (User) TableName() string { return "users" }
 
 // PublicUser is the safe projection returned to clients.
 type PublicUser struct {
-	ID        uuid.UUID  `json:"id"`
-	Email     string     `json:"email"`
-	Name      string     `json:"name"`
-	PhotoURL  *string    `json:"photo_url,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
+	ID        uuid.UUID `json:"id"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	PhotoURL  *string   `json:"photo_url,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (u User) ToPublic() PublicUser {

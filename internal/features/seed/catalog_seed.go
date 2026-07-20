@@ -19,7 +19,11 @@ func SeedCatalog(ctx context.Context, db *gorm.DB) error {
 		{ID: "travel", Name: "Travel", IconName: "flight", ColorHex: "FF2196F3"},
 	}
 	for _, c := range categories {
-		db = db.Where(catalog.Category{ID: c.ID}).FirstOrCreate(&c)
+		if err := db.WithContext(ctx).
+			Where("id = ?", c.ID).
+			FirstOrCreate(&c).Error; err != nil {
+			return err
+		}
 	}
 
 	// Products — use the exact 24 products from Flutter seed_data.dart.
@@ -53,7 +57,11 @@ func SeedCatalog(ctx context.Context, db *gorm.DB) error {
 		{ID: "p24", Name: "Yoga Mat", Price: 49, Rating: 4.9, ReviewsCount: 112, IconName: "sports_soccer", ColorHex: "FF4CAF50", CategoryID: "sports", Description: "Non-slip eco-friendly yoga mat.", ImageURLs: []string{}},
 	}
 	for _, p := range products {
-		db = db.Where(catalog.Product{ID: p.ID}).FirstOrCreate(&p)
+		if err := db.WithContext(ctx).
+			Where("id = ?", p.ID).
+			FirstOrCreate(&p).Error; err != nil {
+			return err
+		}
 	}
 
 	// Promos
@@ -63,7 +71,11 @@ func SeedCatalog(ctx context.Context, db *gorm.DB) error {
 		{ID: "trending", Badge: "TRENDING", Title: "Trending Now", Subtitle: "Most popular picks this week", IconName: "trending_up"},
 	}
 	for _, p := range promos {
-		db = db.Where(catalog.Promo{ID: p.ID}).FirstOrCreate(&p)
+		if err := db.WithContext(ctx).
+			Where("id = ?", p.ID).
+			FirstOrCreate(&p).Error; err != nil {
+			return err
+		}
 	}
 	return nil
 }

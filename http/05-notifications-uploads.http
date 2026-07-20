@@ -1,0 +1,48 @@
+@baseUrl = http://localhost:8080
+@accessToken = {{loginUtilities.response.body.data.access_token}}
+@notificationId = {{listNotifications.response.body.data.items[0].id}}
+
+### Login first
+# @name loginUtilities
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@go-tutorials.local",
+  "password": "Admin@123456"
+}
+
+### List notifications
+### Create an order from 04-orders-reviews.http first if this list is empty.
+# @name listNotifications
+GET {{baseUrl}}/api/v1/notifications
+Authorization: Bearer {{accessToken}}
+
+### Mark the first notification as read
+# @name markNotificationRead
+PATCH {{baseUrl}}/api/v1/notifications/{{notificationId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "is_read": true
+}
+
+### Mark all notifications as read
+# @name markAllNotificationsRead
+POST {{baseUrl}}/api/v1/notifications/mark-all-read
+Authorization: Bearer {{accessToken}}
+
+### Upload the Flutter launcher icon as a PNG
+### The file path is relative to this .http file.
+# @name uploadImage
+POST {{baseUrl}}/api/v1/uploads
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=ManualBoundary
+
+--ManualBoundary
+Content-Disposition: form-data; name="file"; filename="launcher.png"
+Content-Type: image/png
+
+< ../../flutter_tutorials/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+--ManualBoundary--
