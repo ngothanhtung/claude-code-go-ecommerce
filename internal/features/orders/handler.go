@@ -12,6 +12,11 @@ import (
 
 type Handler struct {
 	svc Service
+	// OnOrderCreated is an optional hook fired (in a goroutine) after a
+	// successful order creation. It is set from router.go and is the seam
+	// that lets the orders feature trigger side effects (e.g. notifications)
+	// without importing those feature packages (avoiding import cycles).
+	OnOrderCreated func(userID uuid.UUID, orderID string, total float64)
 }
 
 func NewHandler(svc Service) *Handler { return &Handler{svc: svc} }
@@ -83,6 +88,9 @@ func (h *Handler) Create(c *gin.Context) {
 	if err != nil {
 		response.Error(c, err)
 		return
+	}
+	if h.OnOrderCreated != nil && res != nil {
+		go h.OnOrderCreated(uid, res.ID.String(), res.Total)
 	}
 	response.Created(c, res)
 }
